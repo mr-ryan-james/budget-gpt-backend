@@ -40,9 +40,12 @@ def get_wellness_score(balance_status: BalanceStatus, emotions: list[Emotion]):
     - <high_expenses>: expenses are a large percentage of the income
     - <overshooting_expenses>: expenses are more than the income
 
-    Produce a short reply, with just the computed <wellness_score>, as a JSON object with key: wellness_score.
+    Produce a short reply, with just the computed <wellness_score> and a short <explanation> of the <wellness_score> for the user, \
+    as a JSON object with keys: wellness_score, explanation.
     The <wellness_score> can range from 1 to 10 where 1 is poor and 10 is excellent.
-    If you cannot determine a <wellness_score> return null.
+    Do your best to determine a <wellness_score> different from null, unless there is input data missing.
+    The <explanation> is short text of 50 words maximum that describes the <wellness_score>. It is written in the second person singular \
+    as it addresses the user directly. Use a friendly tone and a clear communication style.
 
     <balance_status>: low_expenses
     <list of emotions>: gratitude
@@ -77,7 +80,8 @@ def get_wellness_score(balance_status: BalanceStatus, emotions: list[Emotion]):
         {'role': 'system', 'content': system_message},
         {'role': 'user', 'content': user_message}
     ]
-    return get_completion_from_messages(messages, temperature=0.7)
+    print(f"User message: {user_message}")
+    return get_completion_from_messages(messages, temperature=0)
 
 
 def get_prompt_for_purchase_decision(user_question):

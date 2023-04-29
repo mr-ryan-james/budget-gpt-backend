@@ -26,8 +26,8 @@ class Database:
         db_user = self.users_collection.find_one({"name": formatted_name})
         return User.parse_obj(db_user)
 
-    def update_user(self, wellness_update):
-        return self.users_collection.update_one({"_id": user.id}, {"$set": wellness_update})
+    def update_user(self, id, wellness_score):
+        return self.users_collection.update_one({"_id": id}, {"$set": {"wellness_score": wellness_score}})
 
 
 if __name__ == "__main__":

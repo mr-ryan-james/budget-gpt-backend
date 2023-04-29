@@ -29,7 +29,7 @@ def get_user(request: Request, name: str) -> User:
     return user
 
 
-@router.post("/emotions", response_model=User)
+@router.post("/emotions", response_model=WellnessUpdate)
 def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body(...)):
     user = fetch_user(request.app.db, name)
 
@@ -42,20 +42,19 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
         json_payload = json.loads(response)
         previous_wellness_score = user.wellness_score
         wellness_update = WellnessUpdate.parse_obj(json_payload)
-        if wellness_update.wellness_score is not None:
+        if wellness_update.wellness_score is not None and wellness_update.wellness_score != user.wellness_score:
             print(
                 f"Wellness score updated from {previous_wellness_score} to {user.wellness_score} for {user.name}")
-            update_result = request.app.db.update_user(wellness_update)
+            update_result = request.app.db.update_user(
+                user.id, wellness_update.wellness_score)
             if update_result.modified_count == 0:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"User with name {name} not found"
                 )
-            user.wellness_score = wellness_update.wellness_score
-            return user
         else:
             print(f"Wellness score unchanged for {user.name}")
-            return user
+        return wellness_update
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Couldn't parse content: {response}")

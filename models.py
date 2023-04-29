@@ -101,3 +101,4 @@ class User(BaseModel):
 
 class WellnessUpdate(BaseModel):
     wellness_score: Optional[float]
+    explanation: Optional[str]
