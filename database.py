@@ -43,6 +43,12 @@ class Database:
         db_user = self.users_collection.find_one({"name": formatted_name})
         return User.parse_obj(db_user)
 
+    def get_wellness_history(self, user_id):
+        return self.wellness_history.find({"user_id": user_id}).sort("date", -1)
+
+    def get_emotions_history(self, user_id):
+        return self.emotions_history.find({"user_id": user_id}).sort("date", -1)
+
     def update_user(self, id, wellness_score):
         return self.users_collection.update_one({"_id": id}, {"$set": {"wellness_score": wellness_score}})
 

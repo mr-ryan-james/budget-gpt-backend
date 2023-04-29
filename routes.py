@@ -46,6 +46,18 @@ def get_recommendations(request: Request, name: str) -> FinancialRecommendations
                             detail=f"Couldn't parse response: {response}")
 
 
+@router.get("/wellness_history", response_model=list[WellnessHistoryEntry])
+def get_wellness_history(request: Request, name: str) -> list[WellnessHistoryEntry]:
+    user = fetch_user(request.app.db, name)
+    return list(request.app.db.get_wellness_history(str(user.id)))
+
+
+@router.get("/emotions_history", response_model=list[EmotionsHistoryEntry])
+def get_emotions_history(request: Request, name: str) -> list[EmotionsHistoryEntry]:
+    user = fetch_user(request.app.db, name)
+    return list(request.app.db.get_emotions_history(str(user.id)))
+
+
 @router.post("/emotions", response_model=WellnessUpdate)
 def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body(...)) -> WellnessUpdate:
     user = fetch_user(request.app.db, name)
