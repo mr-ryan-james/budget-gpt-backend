@@ -6,6 +6,7 @@ import json
 import uuid
 from bson import ObjectId
 from PyObjectId import PyObjectId
+import random
 
 
 class Persona(Enum):
@@ -22,6 +23,15 @@ class Persona(Enum):
         elif self == Persona.JEN:
             return json.loads(preset_jen)
 
+    @property
+    def wellness_sample_range(self):
+        if self == Persona.BOB:
+            return (0.2, 0.5)
+        elif self == Persona.ANNA:
+            return (0.4, 0.7)
+        elif self == Persona.JEN:
+            return (0.6, 1.0)
+
 
 class Emotion(Enum):
     ACCEPTANCE = 'acceptance'
@@ -36,6 +46,18 @@ class Emotion(Enum):
     EXCITEMENT = 'excitement'
     OPTIMISM = 'optimism'
     FRUSTATION = 'frustration'
+
+    @staticmethod
+    def random_emotion_list():
+        emotions = []
+        num_entries = random.randint(1, 5)
+        i = 0
+        while i < num_entries:
+            emotion = random.choice(list(Emotion))
+            if emotion not in emotions:
+                emotions.append(emotion)
+                i += 1
+        return emotions
 
 
 class BalanceStatus(Enum):
@@ -121,3 +143,20 @@ class FinancialRecommendations(BaseModel):
     spending_and_saving: Optional[str]
     money_feelings: Optional[str]
     opportunities: Optional[str]
+
+
+class EmotionsHistoryEntry(BaseModel):
+    date: str
+    emotions: list[Emotion]
+    user_id: str
+
+    def dict(self, *args, **kwargs):
+        dict = super().dict(*args, **kwargs)
+        dict['emotions'] = [c.value for c in dict['emotions']]
+        return dict
+
+
+class WellnessHistoryEntry(BaseModel):
+    date: str
+    wellness_score: float
+    user_id: str

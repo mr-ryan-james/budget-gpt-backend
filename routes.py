@@ -50,6 +50,11 @@ def get_recommendations(request: Request, name: str) -> FinancialRecommendations
 def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body(...)) -> WellnessUpdate:
     user = fetch_user(request.app.db, name)
 
+    # Add emotions to history
+    emotions_history_entry = EmotionsHistoryEntry(
+        date=now(), emotions=emotions, user_id=str(user.id))
+    request.app.db.insert_emotions_history_entry(emotions_history_entry.dict())
+
     response = get_wellness_score(user.balance_status(), emotions)
     print("Response:")
     print(response)
@@ -62,6 +67,14 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
         if wellness_update.wellness_score is not None and wellness_update.wellness_score != user.wellness_score:
             print(
                 f"Wellness score updated from {previous_wellness_score} to {user.wellness_score} for {user.name}")
+
+            # Add wellness score to history
+            wellness_history_entry = WellnessHistoryEntry(
+                date=now(), wellness_score=wellness_update.wellness_score, user_id=str(user.id))
+            request.app.db.insert_wellness_history_entry(
+                emotions_history_entry.dict())
+
+            # Update user with new wellness score
             update_result = request.app.db.update_user(
                 user.id, wellness_update.wellness_score)
             if update_result.modified_count == 0:

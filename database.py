@@ -2,8 +2,18 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 from models import *
 import os
+import random
+from datetime import datetime, timedelta
 
 load_dotenv()
+
+
+def now():
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+
+def random_past_date():
+    return (datetime.now() - timedelta(days=random.randint(1, 20))).strftime('%Y-%m-%d %H:%M:%S')
 
 
 class Database:
@@ -12,14 +22,21 @@ class Database:
         self.client = MongoClient("mongodb+srv://admin:" + db_password +
                                   "@cluster0.wgf9exk.mongodb.net/?retryWrites=true&w=majority")
         self.users_collection = self.client["moeda"]["users"]
+        self.emotions_history = self.client["moeda"]["emotions_history"]
+        self.wellness_history = self.client["moeda"]["wellness_history"]
 
     def close(self):
         self.client.close()
 
-    def reset_user(self, name):
+    def reset(self):
+        self.users_collection.drop()
+        self.emotions_history.drop()
+        self.wellness_history.drop()
+
+    def create_persona(self, name):
         self.users_collection.delete_one({"name": name})
         user = Persona(name)
-        self.users_collection.insert_one(user.default_value)
+        return self.users_collection.insert_one(user.default_value)
 
     def get_user(self, name):
         formatted_name = name.lower().title()
@@ -29,9 +46,32 @@ class Database:
     def update_user(self, id, wellness_score):
         return self.users_collection.update_one({"_id": id}, {"$set": {"wellness_score": wellness_score}})
 
+    def insert_emotions_history_entry(self, emotion_history_entry):
+        return self.emotions_history.insert_one(emotion_history_entry)
+
+    def insert_wellness_history_entry(self, wellness_history_entry):
+        return self.wellness_history.insert_one(wellness_history_entry)
+
 
 if __name__ == "__main__":
     db = Database()
-    for user in Persona:
-        db.reset_user(user.value)
+    db.reset()
+
+    for persona in Persona:
+        db.create_persona(persona.value)
+        num_entries = random.randint(1, 20)
+        for i in range(num_entries):
+            user = db.get_user(persona.value)
+            emotion_history_entry = EmotionsHistoryEntry(
+                date=random_past_date(),
+                emotions=Emotion.random_emotion_list(),
+                user_id=str(user.id)
+            )
+            db.insert_emotions_history_entry(emotion_history_entry.dict())
+            wellness_history_entry = WellnessHistoryEntry(
+                date=random_past_date(),
+                wellness_score=random.uniform(*persona.wellness_sample_range),
+                user_id=str(user.id)
+            )
+            db.insert_wellness_history_entry(wellness_history_entry.dict())
     db.close()
