@@ -98,6 +98,19 @@ class User(BaseModel):
         else:
             return BalanceStatus.OVERSHOOTING_EXPENSES
 
+    def data_points_prompt(self) -> str:
+        return f"""
+        Use the following data points.
+        Data point 1 - financial wellness score. This is a score from 1 to 10 where 1 is poor and 10 is excellent. This user has a score of {self.wellness_score}
+        Data point 2 - user's name: {self.name}
+        Data point 3 - average montly income: {self.monthly_income}
+        Data point 4 - average monthly expense on food: {self.monthly_expense_food}
+        Data point 5 - average monthly expense on rent: {self.monthly_expense_rent}
+        Data point 6 - average monthly expense on transportation: {self.monthly_expense_transportation}
+        Data point 7 - average monthly expense on insurance: {self.monthly_expense_insurance}
+        Data point 8 - average monthly expense on other categories: {self.monthly_expense_other}
+        """
+
 
 class WellnessUpdate(BaseModel):
     wellness_score: Optional[float]

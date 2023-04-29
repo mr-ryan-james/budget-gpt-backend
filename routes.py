@@ -43,7 +43,7 @@ def get_recommendations(request: Request, name: str) -> FinancialRecommendations
         return recommendations
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Couldn't parse content: {response}")
+                            detail=f"Couldn't parse response: {response}")
 
 
 @router.post("/emotions", response_model=WellnessUpdate)
@@ -74,36 +74,22 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
         return wellness_update
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Couldn't parse content: {response}")
+                            detail=f"Couldn't parse response: {response}")
 
 
 @router.post("/purchase_decision", response_model=PurchaseDecision)
-def purchase_decision(request: Request, purchase_intent: PurchaseIntent = Body(...)):
-    prompt = get_prompt_for_purchase_decision(purchase_intent.user_question)
-    print("Prompt:")
-    print(prompt)
-    print("")
+def purchase_decision(request: Request, name: str, purchase_intent: PurchaseIntent = Body(...)):
+    user = fetch_user(request.app.db, name)
 
-    response = llm(prompt.to_messages())
+    response = get_purchase_decision(user, purchase_intent.user_question)
     print("Response:")
     print(response)
     print("")
 
-    # Cleanup response
-    content = response.content.replace("\n", "")
-    content = content.replace("\"true\"", "true")
-    content = content.replace("\"false\"", "false")
-    content = content.replace("\"True\"", "true")
-    content = content.replace("\"False\"", "false")
-    print("Content:")
-    print(content)
-    print("")
-
     try:
-        json_payload = json.loads(content)
+        json_payload = json.loads(response)
         decision = PurchaseDecision.parse_obj(json_payload)
+        return decision
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail="Couldn't parse content: {content}".format(content))
-
-    return decision
+                            detail="Couldn't parse response: {response}".format(response))

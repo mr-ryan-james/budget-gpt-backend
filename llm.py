@@ -1,25 +1,25 @@
 from dotenv import load_dotenv
 import os
-from langchain.chat_models import ChatOpenAI
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
 import openai
 from models import *
 
 load_dotenv()
 
-llm = ChatOpenAI(temperature=0)
+llm = openai.ChatCompletion
+
+system_message = f"""
+You are a personal financial advisor. You balance emotional intelligence with quantitative analysis to help people make better financial decisions.
+"""
+
+tone_message = "The explanation is written in the second person singular and it addresses the user directly. Use a friendly tone and a clear communication style."
 
 
-def get_completion(system_message, user_message, model="gpt-3.5-turbo", temperature=0):
+def get_completion(user_message, model="gpt-3.5-turbo", temperature=0):
     messages = [
         {'role': 'system', 'content': system_message},
         {'role': 'user', 'content': user_message}
     ]
-    response = openai.ChatCompletion.create(
+    response = llm.create(
         model=model,
         messages=messages,
         temperature=temperature
@@ -28,9 +28,6 @@ def get_completion(system_message, user_message, model="gpt-3.5-turbo", temperat
 
 
 def get_wellness_score(balance_status: BalanceStatus, emotions: list[Emotion]):
-    system_message = f"""
-    You are a personal financial advisor. You balance emotional intelligence with quantitative analysis to help people make better financial decisions.
-    """
     balance_status_str = balance_status.value
     emotions_str = ", ".join(emotion.value for emotion in emotions)
     user_message = f"""
@@ -48,8 +45,8 @@ def get_wellness_score(balance_status: BalanceStatus, emotions: list[Emotion]):
     as a JSON object with keys: wellness_score, explanation.
     The <wellness_score> can range from 1 to 10 where 1 is poor and 10 is excellent.
     Do your best to determine a <wellness_score> different from null, unless there is input data missing.
-    The <explanation> is short text of 50 words maximum that describes the <wellness_score>. It is written in the second person singular \
-    as it addresses the user directly. Use a friendly tone and a clear communication style.
+    The <explanation> is short text of 50 words maximum that describes the <wellness_score>. 
+    {tone_message}
 
     <balance_status>: low_expenses
     <list of emotions>: gratitude
@@ -80,75 +77,44 @@ def get_wellness_score(balance_status: BalanceStatus, emotions: list[Emotion]):
 
     <wellness_score>: 
     """
-
     print(f"User message: {user_message}")
-    return get_completion(system_message, user_message, temperature=0)
+    return get_completion(user_message, temperature=0)
 
 
 def get_financial_recommendations(user):
-    system_message = f"""
-    You are a personal financial advisor. You balance emotional intelligence with quantitative analysis to help people make better financial decisions.
-    """
+
     user_message = f"""
     I need you to give one recommendation for each of the following categories of advice: 
     1 - <spending_and_saving>: optimizing spending and saving
     2 - <money_feelings>: developing a healthy relationship to money
     3 - <opportunities>: finding new opportunities to make more money  
 
-    Use the following data points.
-    Data point 1 - financial wellness score. This is a score from 1 to 10 where 1 is poor and 10 is excellent. This user has a score of {user.wellness_score}
-    Data point 2 - user's name: {user.name}
-    Data point 3 - average montly income: {user.monthly_income}
-    Data point 4 - average monthly expense on food: {user.monthly_expense_food}
-    Data point 5 - average monthly expense on rent: {user.monthly_expense_rent}
-    Data point 6 - average monthly expense on transportation: {user.monthly_expense_transportation}
-    Data point 7 - average monthly expense on insurance: {user.monthly_expense_insurance}
-    Data point 8 - average monthly expense on other categories: {user.monthly_expense_other}
+    Gi
+    {user.data_points_prompt()}
 
     Return the recommendation and category in JSON format with keys spending_and_saving, money_feelings, and opportunities. 
     Each recommendation should be max 140 characters long. 
+    {tone_message}
     """
     print(f"User message: {user_message}")
-    return get_completion(system_message, user_message, temperature=0)
+    return get_completion(user_message, temperature=0)
 
 
-def get_prompt_for_purchase_decision(user_question):
-    system_message_template = f"""
-    As "Moeda," an intelligent virtual financial advisor, your mission is to help the user make smart financial decisions \
-    that promote financial wellness.
-    """
-    user_message_template = f"""
-    Given the following financial information about the user:
-    ```
-    - average monthly income: $4,000
-    - average monthly expense on food: $500
-    - average montly expense on rent: $1,500
-    - average monthly expense on transportation: $300
-    - average monthly expense on healthcare: $400
-    - average monthly expense on other categories: $200
-    ```
-
-    and the following financial goals:
-    ```
-    - 2 yearly holidays worth $2,000 each
-    - 4 yearly welness or sport outings for $800 each
-    ```
+def get_purchase_decision(user, user_question):
+    user_message = f"""
+    {user.data_points_prompt()}
 
     What would you recommend the user to do, given the following question?
     - should the user go ahead with their purchase intent? (true or false)
-    - explanation of the decision in 100 words at most (string)
+    - explanation of the decision in 50 words at most (string)
 
     Provide your answer exclusively in JSON format with the following keys: 
     decision, explanation
+    {tone_message}
 
     Question: `{user_question}`
 
     Answer:
     """
-    system_message_prompt = SystemMessagePromptTemplate.from_template(
-        system_message_template)
-    user_message_prompt = HumanMessagePromptTemplate.from_template(
-        user_message_template)
-    chatPrompt = ChatPromptTemplate.from_messages(
-        [system_message_prompt, user_message_prompt])
-    return chatPrompt.format_prompt(user_question=user_question)
+    print(f"User message: {user_message}")
+    return get_completion(user_message, temperature=0)
