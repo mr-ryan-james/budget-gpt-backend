@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Body, Request, Response, HTTPException, status
 from fastapi.encoders import jsonable_encoder
-from llm import llm, get_prompt_for_purchase_decision
+from llm import *
 from pydantic import ValidationError
 from models import *
 import json
@@ -15,13 +15,50 @@ def greeting():
     return {"message": "Hello world!"}
 
 
-@router.get("/user", response_model=User)
-def get_user(request: Request, name: str):
-    user = request.app.db.get_user(name)
+def fetch_user(db: Database, name: str) -> User:
+    user = db.get_user(name)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User with name {name} not found".format(name=name))
     return user
+
+
+@router.get("/user", response_model=User)
+def get_user(request: Request, name: str) -> User:
+    user = fetch_user(request.app.db, name)
+    return user
+
+
+@router.post("/emotions", response_model=User)
+def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body(...)):
+    user = fetch_user(request.app.db, name)
+
+    response = get_wellness_score(user.balance_status(), emotions)
+    print("Response:")
+    print(response)
+    print("")
+
+    try:
+        json_payload = json.loads(response)
+        previous_wellness_score = user.wellness_score
+        wellness_update = WellnessUpdate.parse_obj(json_payload)
+        if wellness_update.wellness_score is not None:
+            print(
+                f"Wellness score updated from {previous_wellness_score} to {user.wellness_score} for {user.name}")
+            update_result = request.app.db.update_user(wellness_update)
+            if update_result.modified_count == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"User with name {name} not found"
+                )
+            user.wellness_score = wellness_update.wellness_score
+            return user
+        else:
+            print(f"Wellness score unchanged for {user.name}")
+            return user
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Couldn't parse content: {response}")
 
 
 @router.post("/purchase_decision", response_model=PurchaseDecision)
