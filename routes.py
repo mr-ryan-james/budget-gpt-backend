@@ -4,6 +4,7 @@ from llm import llm, get_prompt_for_purchase_decision
 from pydantic import ValidationError
 from models import *
 import json
+from database import *
 
 
 router = APIRouter()
@@ -14,7 +15,15 @@ def greeting():
     return {"message": "Hello world!"}
 
 
-# endpoint for a purchase decision with query param user_question
+@router.get("/user", response_model=User)
+def get_user(request: Request, name: str):
+    user = request.app.db.get_user(name)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="User with name {name} not found".format(name=name))
+    return user
+
+
 @router.post("/purchase_decision", response_model=PurchaseDecision)
 def purchase_decision(request: Request, purchase_intent: PurchaseIntent = Body(...)):
     prompt = get_prompt_for_purchase_decision(purchase_intent.user_question)
