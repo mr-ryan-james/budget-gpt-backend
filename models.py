@@ -9,3 +9,8 @@ class PurchaseIntent(BaseModel):
 class PurchaseDecision(BaseModel):
     decision: bool
     explanation: str
+
+
+class User(BaseModel):
+    name: str
+    wellness_score: float
