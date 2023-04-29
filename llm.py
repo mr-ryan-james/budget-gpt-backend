@@ -14,7 +14,11 @@ load_dotenv()
 llm = ChatOpenAI(temperature=0)
 
 
-def get_completion_from_messages(messages, model="gpt-3.5-turbo", temperature=0):
+def get_completion(system_message, user_message, model="gpt-3.5-turbo", temperature=0):
+    messages = [
+        {'role': 'system', 'content': system_message},
+        {'role': 'user', 'content': user_message}
+    ]
     response = openai.ChatCompletion.create(
         model=model,
         messages=messages,
@@ -76,12 +80,36 @@ def get_wellness_score(balance_status: BalanceStatus, emotions: list[Emotion]):
 
     <wellness_score>: 
     """
-    messages = [
-        {'role': 'system', 'content': system_message},
-        {'role': 'user', 'content': user_message}
-    ]
+
     print(f"User message: {user_message}")
-    return get_completion_from_messages(messages, temperature=0)
+    return get_completion(system_message, user_message, temperature=0)
+
+
+def get_financial_recommendations(user):
+    system_message = f"""
+    You are a personal financial advisor. You balance emotional intelligence with quantitative analysis to help people make better financial decisions.
+    """
+    user_message = f"""
+    I need you to give one recommendation for each of the following categories of advice: 
+    1 - <spending_and_saving>: optimizing spending and saving
+    2 - <money_feelings>: developing a healthy relationship to money
+    3 - <opportunities>: finding new opportunities to make more money  
+
+    Use the following data points.
+    Data point 1 - financial wellness score. This is a score from 1 to 10 where 1 is poor and 10 is excellent. This user has a score of {user.wellness_score}
+    Data point 2 - user's name: {user.name}
+    Data point 3 - average montly income: {user.monthly_income}
+    Data point 4 - average monthly expense on food: {user.monthly_expense_food}
+    Data point 5 - average monthly expense on rent: {user.monthly_expense_rent}
+    Data point 6 - average monthly expense on transportation: {user.monthly_expense_transportation}
+    Data point 7 - average monthly expense on insurance: {user.monthly_expense_insurance}
+    Data point 8 - average monthly expense on other categories: {user.monthly_expense_other}
+
+    Return the recommendation and category in JSON format with keys spending_and_saving, money_feelings, and opportunities. 
+    Each recommendation should be max 140 characters long. 
+    """
+    print(f"User message: {user_message}")
+    return get_completion(system_message, user_message, temperature=0)
 
 
 def get_prompt_for_purchase_decision(user_question):

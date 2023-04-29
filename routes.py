@@ -29,8 +29,25 @@ def get_user(request: Request, name: str) -> User:
     return user
 
 
+@router.get("/recommendations", response_model=FinancialRecommendations)
+def get_recommendations(request: Request, name: str) -> FinancialRecommendations:
+    user = fetch_user(request.app.db, name)
+    response = get_financial_recommendations(user)
+    print("Response:")
+    print(response)
+    print("")
+
+    try:
+        json_payload = json.loads(response)
+        recommendations = FinancialRecommendations.parse_obj(json_payload)
+        return recommendations
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Couldn't parse content: {response}")
+
+
 @router.post("/emotions", response_model=WellnessUpdate)
-def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body(...)):
+def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body(...)) -> WellnessUpdate:
     user = fetch_user(request.app.db, name)
 
     response = get_wellness_score(user.balance_status(), emotions)

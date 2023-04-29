@@ -102,3 +102,9 @@ class User(BaseModel):
 class WellnessUpdate(BaseModel):
     wellness_score: Optional[float]
     explanation: Optional[str]
+
+
+class FinancialRecommendations(BaseModel):
+    spending_and_saving: Optional[str]
+    money_feelings: Optional[str]
+    opportunities: Optional[str]
