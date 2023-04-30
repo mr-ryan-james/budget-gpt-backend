@@ -140,7 +140,7 @@ class User(BaseModel):
 
     def data_points_prompt(self) -> str:
         return f"""
-        Use the following data points.
+        Use the following user data points.
         Data point 1 - financial wellness score. This is a score from 1 to 10 where 1 is poor and 10 is excellent. This user has a score of {self.wellness_score}
         Data point 2 - user's name: {self.name}
         Data point 3 - average montly income: {self.monthly_income}

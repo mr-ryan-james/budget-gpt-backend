@@ -11,6 +11,13 @@ class LLM:
         self.llm = openai.ChatCompletion
         self.system_message = "You are a personal financial advisor. You balance emotional intelligence with quantitative analysis to help people make better financial decisions."
         self.query_tone_message = "The explanation is written in the second person singular and it addresses the user directly. Use a friendly tone and a clear communication style."
+        self.market_situation_prompt = f"""
+The current US economic conditions is as follows:
+US economic growth slowed to 1.1 per cent in the first quarter of this year, the Commerce Department said on Thursday, as the possibility of a mild recession increases. \
+The figure came in below economists' expectations of 2 per cent growth, while core personal consumption expenditure for the first quarter rose by 4.9 per cent, \
+versus economists' projections of 4.7 per cent growth. Economic activity has been easing as the US central bank has rapidly raised the benchmark lending rate to \
+tackle stubborn inflation, while the full fallout from recent financial sector unrest — following the failures of three midsized lenders last month — has yet to be seen.        
+"""
 
     def get_completion(self, user_message, model="gpt-3.5-turbo", temperature=0):
         messages = [
@@ -86,12 +93,17 @@ I need you to give one recommendation for each of the following categories of ad
 
 {user.data_points_prompt()}
 
+{self.market_situation_prompt}
+
+Base your recommendations primarily on the user data points but incorporate the current economic conditions. Use simple language that \
+a non-technical person would understand. Use diverse language so that it doesn't sound repetitive.
+
 Return the recommendation and category in JSON format with keys spending_and_saving, money_feelings, and opportunities. 
-Each recommendation should be max 140 characters long. 
+Each recommendation should be max 80 words long. 
 {self.query_tone_message}
         """
         print(f"User message: {user_message}")
-        return self.get_completion(user_message, temperature=0)
+        return self.get_completion(user_message, temperature=0.9)
 
     def get_purchase_decision(self, user, user_question):
         user_message = f"""
