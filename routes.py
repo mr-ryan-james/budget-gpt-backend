@@ -127,14 +127,9 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
                 date=now(), wellness_score=wellness_update.wellness_score, explanation=wellness_update.explanation, user_id=str(user.id))
             db.insert_wellness_history_entry(wellness_history_entry.dict())
 
-            # Update user with new wellness score
-            update_result = db.update_user(
-                user.id, wellness_update.wellness_score)
-            if update_result.modified_count == 0:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with name {name} not found"
-                )
+            # Update user with new wellness score, if needed
+            if previous_wellness_score != wellness_update.wellness_score:
+                db.update_user(user.id, wellness_update.wellness_score)
 
         return wellness_update
     except ValidationError as e:
