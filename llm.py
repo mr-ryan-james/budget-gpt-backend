@@ -3,11 +3,10 @@ import os
 import openai
 from models import *
 
-load_dotenv()
-
 
 class LLM:
     def __init__(self):
+        load_dotenv()
         self.llm = openai.ChatCompletion
         self.system_message = "You are a personal financial advisor. You balance emotional intelligence with quantitative analysis to help people make better financial decisions."
         self.query_tone_message = "The explanation is written in the second person singular and it addresses the user directly. Use a friendly tone and a clear communication style."
