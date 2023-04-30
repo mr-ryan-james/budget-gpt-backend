@@ -34,18 +34,18 @@ def get_skills_ratio():
     return skills_count / df.shape[0]
 
 
-def get_savings_confidence_ratio():
+def get_confident_in_savings_ratio():
     confidence_count = df.loc[df["FWB1_6"] >= 4].shape[0]
     return confidence_count / df.shape[0]
 
 
 def get_open_data_source():
     return OpenDataSource(
-        distress_ratio=get_distress_ratio(),
-        control_ratio=get_control_ratio(),
-        frugality_ratio=get_frugality_ratio(),
-        skills_ratio=get_skills_ratio(),
-        savings_confidence_ratio=get_savings_confidence_ratio(),
+        distress=get_distress_ratio(),
+        control=get_control_ratio(),
+        frugality=get_frugality_ratio(),
+        skills=get_skills_ratio(),
+        confident_in_savings=get_confident_in_savings_ratio(),
         source="Consumer Financial Protection Bureau"
     )
 

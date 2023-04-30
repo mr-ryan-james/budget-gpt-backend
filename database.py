@@ -81,7 +81,11 @@ class Database:
         return self.wellness_history.insert_one(wellness_history_entry)
 
     def get_last_wellness_score_explanation(self, user_id):
-        return self.wellness_history.find_one({"_id": user_id}).sort("date", -1)["explanation"]
+        records = list(self.wellness_history.find(
+            {"user_id": user_id}).sort("date", -1).limit(1))
+        if records.count == 0:
+            return None
+        return records[0]["explanation"]
 
 
 if __name__ == "__main__":
