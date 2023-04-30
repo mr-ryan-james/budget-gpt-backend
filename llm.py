@@ -84,7 +84,6 @@ I need you to give one recommendation for each of the following categories of ad
 2 - <money_feelings>: developing a healthy relationship to money
 3 - <opportunities>: finding new opportunities to make more money  
 
-Gi
 {user.data_points_prompt()}
 
 Return the recommendation and category in JSON format with keys spending_and_saving, money_feelings, and opportunities. 
