@@ -99,7 +99,7 @@ class User(BaseModel):
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
 
-    def expenses(self) -> float:
+    def total_expenses(self) -> float:
         return self.monthly_expense_food + \
             self.monthly_expense_rent + \
             self.monthly_expense_education + \
@@ -108,7 +108,7 @@ class User(BaseModel):
             self.monthly_expense_other
 
     def balance_status(self) -> BalanceStatus:
-        expenses = self.expenses()
+        expenses = self.total_expenses()
         income = self.monthly_income
         ratio = expenses / income
         if ratio < 0.4:
@@ -132,6 +132,22 @@ class User(BaseModel):
         Data point 7 - average monthly expense on insurance: {self.monthly_expense_insurance}
         Data point 8 - average monthly expense on other categories: {self.monthly_expense_other}
         """
+
+    def expenses(self):
+        return [
+            Expense(category='Food', amount=self.monthly_expense_food,
+                    percentage=self.monthly_expense_food / self.total_expenses()),
+            Expense(category='Rent', amount=self.monthly_expense_rent,
+                    percentage=self.monthly_expense_rent / self.total_expenses()),
+            Expense(category='Education', amount=self.monthly_expense_education,
+                    percentage=self.monthly_expense_education / self.total_expenses()),
+            Expense(category='Transportation', amount=self.monthly_expense_transportation,
+                    percentage=self.monthly_expense_transportation / self.total_expenses()),
+            Expense(category='Insurance', amount=self.monthly_expense_insurance,
+                    percentage=self.monthly_expense_insurance / self.total_expenses()),
+            Expense(category='Other', amount=self.monthly_expense_other,
+                    percentage=self.monthly_expense_other / self.total_expenses())
+        ]
 
 
 class WellnessUpdate(BaseModel):
@@ -160,3 +176,9 @@ class WellnessHistoryEntry(BaseModel):
     date: str
     wellness_score: float
     user_id: str
+
+
+class Expense(BaseModel):
+    category: str
+    amount: float
+    percentage: float
