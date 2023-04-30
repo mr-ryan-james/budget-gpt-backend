@@ -118,13 +118,13 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
         json_payload = json.loads(response)
         previous_wellness_score = user.wellness_score
         wellness_update = WellnessUpdate.parse_obj(json_payload)
-        if wellness_update.wellness_score is not None and wellness_update.wellness_score != user.wellness_score:
+        if wellness_update.wellness_score is not None:
             print(
                 f"Wellness score updated from {previous_wellness_score} to {user.wellness_score} for {user.name}")
 
             # Add wellness score to history
             wellness_history_entry = WellnessHistoryEntry(
-                date=now(), wellness_score=wellness_update.wellness_score, user_id=str(user.id))
+                date=now(), wellness_score=wellness_update.wellness_score, explanation=wellness_update.explanation, user_id=str(user.id))
             db.insert_wellness_history_entry(wellness_history_entry.dict())
 
             # Update user with new wellness score
@@ -135,8 +135,7 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"User with name {name} not found"
                 )
-        else:
-            print(f"Wellness score unchanged for {user.name}")
+
         return wellness_update
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

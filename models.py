@@ -195,6 +195,7 @@ class EmotionsHistoryEntry(BaseModel):
 class WellnessHistoryEntry(BaseModel):
     date: str
     wellness_score: float
+    explanation: Optional[str]
     user_id: str
 
 
