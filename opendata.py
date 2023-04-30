@@ -31,7 +31,7 @@ def get_ratio(key):
     filtered_df["unweighted_frequency"] = filtered_df["unweighted_frequency"].apply(
         lambda x: int(x.replace(",", "")))
     total_count = filtered_df["unweighted_frequency"].sum()
-    return target_count / total_count
+    return target_count * 100 / total_count
 
 
 def get_open_data_source():

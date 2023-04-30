@@ -160,6 +160,7 @@ Given the following most recent explanation about the <wellness_score> of the us
 `{wellness_score_explanation}`
 
 Provide a relatioship of the current emotional state of the user to the provided data about Americans.
+{self.query_tone_message}
 Start with 'did you know' and complete the sentence. The description should be max 80 words long.
 """
         print(f"User message: {user_message}")
