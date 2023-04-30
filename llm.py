@@ -150,7 +150,7 @@ The description should be max 80 words long. Focus more on the latest emotions a
     def get_did_you_know(self, wellness_score_explanation, open_data_source):
         user_message = f"""
 Given the following data about Americans:
-- {format(open_data_source.distress, '.2f')}% feel significat financial stress
+- {format(open_data_source.distress, '.2f')}% feel significant financial stress
 - {format(open_data_source.control, '.2f')}% feel like finances control their lives
 - {format(open_data_source.frugality, '.2f')}% are frugal
 - {format(open_data_source.skills, '.2f')}% consider themselves financially skilled
