@@ -125,7 +125,7 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
             # Add wellness score to history
             wellness_history_entry = WellnessHistoryEntry(
                 date=now(), wellness_score=wellness_update.wellness_score, user_id=str(user.id))
-            db.insert_wellness_history_entry(emotions_history_entry.dict())
+            db.insert_wellness_history_entry(wellness_history_entry.dict())
 
             # Update user with new wellness score
             update_result = db.update_user(
