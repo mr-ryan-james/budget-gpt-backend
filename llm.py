@@ -146,3 +146,7 @@ The description should be max 80 words long. Focus more on the latest emotions a
         """
         print(f"User message: {user_message}")
         return self.get_completion(user_message, temperature=0)
+
+    def get_did_you_know(self, wellness_score_explanation, open_data_source):
+        # TODO: perform a query based on wellness_score_explanation and open_data_source
+        return f"{{ \"description\": \"foo\", \"source\": \"{open_data_source.source}\"  }}"

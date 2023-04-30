@@ -208,3 +208,17 @@ class FlowUnit(BaseModel):
 
 class AboutMe(BaseModel):
     description: str
+
+
+class OpenDataSource(BaseModel):
+    distress: float
+    control: float
+    frugality: float
+    skills: float
+    confident_in_savings: float
+    source: str
+
+
+class DidYouKnow(BaseModel):
+    description: str
+    source: str

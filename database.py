@@ -80,6 +80,9 @@ class Database:
     def insert_wellness_history_entry(self, wellness_history_entry):
         return self.wellness_history.insert_one(wellness_history_entry)
 
+    def get_last_wellness_score_explanation(self, user_id):
+        return self.wellness_history.find_one({"_id": user_id}).sort("date", -1)["explanation"]
+
 
 if __name__ == "__main__":
     db = Database()

@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from models import *
 import json
 from database import *
-
+from opendata import get_open_data_source
 
 router = APIRouter()
 
@@ -96,6 +96,32 @@ def get_about_me(request: Request, name: str) -> AboutMe:
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Couldn't parse response: {response}")
+
+
+@router.get("/did_you_know", response_model=DidYouKnow)
+def get_did_you_know(request: Request, name: str) -> DidYouKnow:
+    db = request.app.db
+    llm = request.app.llm
+    user = fetch_user(db, name)
+    wellness_score_explanation = db.get_last_wellness_score_explanation(
+        str(user.id))
+    if wellness_score_explanation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Explanation not found".format(name=name))
+    open_data_source = get_open_data_source()
+    response = llm.get_did_you_know(
+        wellness_score_explanation, open_data_source)
+    print("Response:")
+    print(response)
+    print("")
+
+    try:
+        json_payload = json.loads(response)
+        did_you_know = DidYouKnow.parse_obj(json_payload)
+        return did_you_know
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="Couldn't parse response: {response}".format(response))
 
 
 @router.post("/emotions", response_model=WellnessUpdate)
