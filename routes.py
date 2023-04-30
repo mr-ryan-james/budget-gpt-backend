@@ -32,7 +32,7 @@ def get_user(request: Request, name: str) -> User:
 @router.get("/recommendations", response_model=FinancialRecommendations)
 def get_recommendations(request: Request, name: str) -> FinancialRecommendations:
     user = fetch_user(request.app.db, name)
-    response = get_financial_recommendations(user)
+    response = request.app.llm.get_financial_recommendations(user)
     print("Response:")
     print(response)
     print("")
@@ -73,7 +73,8 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
         date=now(), emotions=emotions, user_id=str(user.id))
     request.app.db.insert_emotions_history_entry(emotions_history_entry.dict())
 
-    response = get_wellness_score(user.balance_status(), emotions)
+    response = request.app.llm.get_wellness_score(
+        user.balance_status(), emotions)
     print("Response:")
     print(response)
     print("")
@@ -112,7 +113,8 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
 def purchase_decision(request: Request, name: str, purchase_intent: PurchaseIntent = Body(...)):
     user = fetch_user(request.app.db, name)
 
-    response = get_purchase_decision(user, purchase_intent.user_question)
+    response = request.app.llm.get_purchase_decision(
+        user, purchase_intent.user_question)
     print("Response:")
     print(response)
     print("")

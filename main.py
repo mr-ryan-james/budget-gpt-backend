@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from routes import router
-from database import *
+from database import Database
+from llm import LLM
 import uvicorn
 
 
@@ -11,6 +12,7 @@ app.include_router(router)
 @app.on_event("startup")
 def startup_db_client():
     app.db = Database()
+    app.llm = LLM()
 
 
 @app.on_event("shutdown")
