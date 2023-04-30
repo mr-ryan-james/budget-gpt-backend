@@ -149,8 +149,19 @@ The description should be max 80 words long. Focus more on the latest emotions a
 
     def get_did_you_know(self, wellness_score_explanation, open_data_source):
         user_message = f"""
-Given the following data about Americans:     
-        """
+Given the following data about Americans:
+- {format(open_data_source.distress, '.2f')}% feel significat financial stress
+- {format(open_data_source.control, '.2f')}% feel like finances control their lives
+- {format(open_data_source.frugality, '.2f')}% are frugal
+- {format(open_data_source.skills, '.2f')}% consider themselves financially skilled
+- {format(open_data_source.confident_in_savings, '.2f')}% are not confident that their savings will last
+
+Given the following most recent explanation about the <wellness_score> of the user:
+`{wellness_score_explanation}`
+
+Provide a relatioship of the current emotional state of the user to the provided data about Americans.
+Start with 'did you know' and complete the sentence. The description should be max 80 words long.
+"""
         print(f"User message: {user_message}")
         description = self.get_completion(user_message, temperature=0)
         return f"{{ \"description\": \"{description}\", \"source\": \"{open_data_source.source}\"}}"
