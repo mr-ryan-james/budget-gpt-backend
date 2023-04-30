@@ -185,3 +185,7 @@ class FlowUnit(BaseModel):
     category: str
     amount: float
     percentage: float
+
+
+class AboutMe(BaseModel):
+    description: str

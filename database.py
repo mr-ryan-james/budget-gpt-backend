@@ -33,6 +33,28 @@ class Database:
         self.emotions_history.drop()
         self.wellness_history.drop()
 
+    def initialize_with_sample_data(self):
+        for persona in Persona:
+            self.create_persona(persona.value)
+            num_entries = random.randint(1, 20)
+            for i in range(num_entries):
+                user = self.get_user(persona.value)
+                emotion_history_entry = EmotionsHistoryEntry(
+                    date=random_past_date(),
+                    emotions=Emotion.random_emotion_list(),
+                    user_id=str(user.id)
+                )
+                self.insert_emotions_history_entry(
+                    emotion_history_entry.dict())
+                wellness_history_entry = WellnessHistoryEntry(
+                    date=random_past_date(),
+                    wellness_score=random.uniform(
+                        *persona.wellness_sample_range),
+                    user_id=str(user.id)
+                )
+                self.insert_wellness_history_entry(
+                    wellness_history_entry.dict())
+
     def create_persona(self, name):
         self.users_collection.delete_one({"name": name})
         user = Persona(name)
@@ -62,22 +84,5 @@ class Database:
 if __name__ == "__main__":
     db = Database()
     db.reset()
-
-    for persona in Persona:
-        db.create_persona(persona.value)
-        num_entries = random.randint(1, 20)
-        for i in range(num_entries):
-            user = db.get_user(persona.value)
-            emotion_history_entry = EmotionsHistoryEntry(
-                date=random_past_date(),
-                emotions=Emotion.random_emotion_list(),
-                user_id=str(user.id)
-            )
-            db.insert_emotions_history_entry(emotion_history_entry.dict())
-            wellness_history_entry = WellnessHistoryEntry(
-                date=random_past_date(),
-                wellness_score=random.uniform(*persona.wellness_sample_range),
-                user_id=str(user.id)
-            )
-            db.insert_wellness_history_entry(wellness_history_entry.dict())
+    db.initialize_with_sample_data()
     db.close()

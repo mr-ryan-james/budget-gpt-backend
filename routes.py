@@ -25,13 +25,15 @@ def fetch_user(db: Database, name: str) -> User:
 
 @router.get("/user", response_model=User)
 def get_user(request: Request, name: str) -> User:
-    user = fetch_user(request.app.db, name)
+    db = request.app.db
+    user = fetch_user(db, name)
     return user
 
 
 @router.get("/recommendations", response_model=FinancialRecommendations)
 def get_recommendations(request: Request, name: str) -> FinancialRecommendations:
-    user = fetch_user(request.app.db, name)
+    db = request.app.db
+    user = fetch_user(db, name)
     response = request.app.llm.get_financial_recommendations(user)
     print("Response:")
     print(response)
@@ -48,33 +50,66 @@ def get_recommendations(request: Request, name: str) -> FinancialRecommendations
 
 @router.get("/wellness_history", response_model=list[WellnessHistoryEntry])
 def get_wellness_history(request: Request, name: str) -> list[WellnessHistoryEntry]:
-    user = fetch_user(request.app.db, name)
+    db = request.app.db
+    user = fetch_user(db, name)
     return list(request.app.db.get_wellness_history(str(user.id)))
 
 
 @router.get("/emotions_history", response_model=list[EmotionsHistoryEntry])
 def get_emotions_history(request: Request, name: str) -> list[EmotionsHistoryEntry]:
-    user = fetch_user(request.app.db, name)
-    return list(request.app.db.get_emotions_history(str(user.id)))
+    db = request.app.db
+    user = fetch_user(db, name)
+    return list(db.get_emotions_history(str(user.id)))
 
 
 @router.get("/flow_units", response_model=list[FlowUnit])
 def get_expenses(request: Request, name: str) -> list[FlowUnit]:
-    user = fetch_user(request.app.db, name)
+    db = request.app.db
+    user = fetch_user(db, name)
     return user.flow_units()
+
+
+@router.get("/about_me", response_model=AboutMe)
+def get_about_me(request: Request, name: str) -> AboutMe:
+    db = request.app.db
+    llm = request.app.llm
+    user = fetch_user(db, name)
+    emotions_history = list(map(
+        lambda x: EmotionsHistoryEntry(
+            date=x["date"], emotions=x["emotions"], user_id=x["user_id"]),
+        list(db.get_emotions_history(str(user.id)))
+    ))
+    wellness_history = list(map(
+        lambda x: WellnessHistoryEntry(
+            date=x["date"], wellness_score=x["wellness_score"], user_id=x["user_id"]),
+        list(db.get_wellness_history(str(user.id)))
+    ))
+    response = llm.get_about_me(emotions_history, wellness_history)
+    print("Response:")
+    print(response)
+    print("")
+
+    try:
+        json_payload = json.loads(response)
+        about_me = AboutMe.parse_obj(json_payload)
+        return about_me
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Couldn't parse response: {response}")
 
 
 @router.post("/emotions", response_model=WellnessUpdate)
 def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body(...)) -> WellnessUpdate:
-    user = fetch_user(request.app.db, name)
+    db = request.app.db
+    llm = request.app.llm
+    user = fetch_user(db, name)
 
     # Add emotions to history
     emotions_history_entry = EmotionsHistoryEntry(
         date=now(), emotions=emotions, user_id=str(user.id))
-    request.app.db.insert_emotions_history_entry(emotions_history_entry.dict())
+    db.insert_emotions_history_entry(emotions_history_entry.dict())
 
-    response = request.app.llm.get_wellness_score(
-        user.balance_status(), emotions)
+    response = llm.get_wellness_score(user.balance_status(), emotions)
     print("Response:")
     print(response)
     print("")
@@ -90,11 +125,10 @@ def process_emotions(request: Request, name: str, emotions: list[Emotion] = Body
             # Add wellness score to history
             wellness_history_entry = WellnessHistoryEntry(
                 date=now(), wellness_score=wellness_update.wellness_score, user_id=str(user.id))
-            request.app.db.insert_wellness_history_entry(
-                emotions_history_entry.dict())
+            db.insert_wellness_history_entry(emotions_history_entry.dict())
 
             # Update user with new wellness score
-            update_result = request.app.db.update_user(
+            update_result = db.update_user(
                 user.id, wellness_update.wellness_score)
             if update_result.modified_count == 0:
                 raise HTTPException(
