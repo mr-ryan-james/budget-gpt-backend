@@ -41,7 +41,7 @@ class Database:
                 user = self.get_user(persona.value)
                 emotion_history_entry = EmotionsHistoryEntry(
                     date=random_past_date(),
-                    emotions=Emotion.random_emotion_list(),
+                    emotions=Emotion.random_emotion_list(persona),
                     user_id=str(user.id)
                 )
                 self.insert_emotions_history_entry(

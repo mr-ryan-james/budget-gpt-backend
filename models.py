@@ -32,6 +32,12 @@ class Persona(Enum):
         elif self == Persona.JEN:
             return (0.6, 1.0)
 
+    def is_typical(self, emotion):
+        if self == Persona.BOB:
+            return emotion in Emotion.negative_emotions() + Emotion.neutral_emotions()
+        else:
+            return emotion in Emotion.neutral_emotions() + Emotion.positive_emotions()
+
 
 class Emotion(Enum):
     ACCEPTANCE = 'acceptance'
@@ -48,16 +54,28 @@ class Emotion(Enum):
     FRUSTATION = 'frustration'
 
     @staticmethod
-    def random_emotion_list():
+    def random_emotion_list(persona):
         emotions = []
-        num_entries = random.randint(1, 5)
+        num_entries = random.randint(1, 4)
         i = 0
         while i < num_entries:
             emotion = random.choice(list(Emotion))
-            if emotion not in emotions:
+            if persona.is_typical(emotion) and emotion not in emotions:
                 emotions.append(emotion)
                 i += 1
         return emotions
+
+    @staticmethod
+    def positive_emotions():
+        return [Emotion.GRATITUDE, Emotion.SERENITY, Emotion.EXCITEMENT, Emotion.OPTIMISM]
+
+    @staticmethod
+    def neutral_emotions():
+        return [Emotion.ACCEPTANCE, Emotion.CONFUSION]
+
+    @staticmethod
+    def negative_emotions():
+        return [Emotion.DISAPPOINTMENT, Emotion.BITTERNESS, Emotion.NERVOUSNESS, Emotion.SHAME, Emotion.TERROR, Emotion.FRUSTATION]
 
 
 class BalanceStatus(Enum):
