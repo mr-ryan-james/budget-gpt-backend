@@ -58,10 +58,10 @@ def get_emotions_history(request: Request, name: str) -> list[EmotionsHistoryEnt
     return list(request.app.db.get_emotions_history(str(user.id)))
 
 
-@router.get("/expenses", response_model=list[Expense])
-def get_expenses(request: Request, name: str) -> list[Expense]:
+@router.get("/flow_units", response_model=list[FlowUnit])
+def get_expenses(request: Request, name: str) -> list[FlowUnit]:
     user = fetch_user(request.app.db, name)
-    return user.expenses()
+    return user.flow_units()
 
 
 @router.post("/emotions", response_model=WellnessUpdate)

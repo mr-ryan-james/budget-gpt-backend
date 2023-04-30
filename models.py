@@ -133,20 +133,22 @@ class User(BaseModel):
         Data point 8 - average monthly expense on other categories: {self.monthly_expense_other}
         """
 
-    def expenses(self):
+    def flow_units(self):
         return [
-            Expense(category='Food', amount=self.monthly_expense_food,
-                    percentage=self.monthly_expense_food / self.total_expenses()),
-            Expense(category='Rent', amount=self.monthly_expense_rent,
-                    percentage=self.monthly_expense_rent / self.total_expenses()),
-            Expense(category='Education', amount=self.monthly_expense_education,
-                    percentage=self.monthly_expense_education / self.total_expenses()),
-            Expense(category='Transportation', amount=self.monthly_expense_transportation,
-                    percentage=self.monthly_expense_transportation / self.total_expenses()),
-            Expense(category='Insurance', amount=self.monthly_expense_insurance,
-                    percentage=self.monthly_expense_insurance / self.total_expenses()),
-            Expense(category='Other', amount=self.monthly_expense_other,
-                    percentage=self.monthly_expense_other / self.total_expenses())
+            FlowUnit(is_expense=False, category='Income',
+                     amount=self.monthly_income, percentage=1.0),
+            FlowUnit(is_expense=True, category='Food', amount=self.monthly_expense_food,
+                     percentage=self.monthly_expense_food / self.total_expenses()),
+            FlowUnit(is_expense=True, category='Rent', amount=self.monthly_expense_rent,
+                     percentage=self.monthly_expense_rent / self.total_expenses()),
+            FlowUnit(is_expense=True, category='Education', amount=self.monthly_expense_education,
+                     percentage=self.monthly_expense_education / self.total_expenses()),
+            FlowUnit(is_expense=True, category='Transportation', amount=self.monthly_expense_transportation,
+                     percentage=self.monthly_expense_transportation / self.total_expenses()),
+            FlowUnit(is_expense=True, category='Insurance', amount=self.monthly_expense_insurance,
+                     percentage=self.monthly_expense_insurance / self.total_expenses()),
+            FlowUnit(is_expense=True, category='Other', amount=self.monthly_expense_other,
+                     percentage=self.monthly_expense_other / self.total_expenses())
         ]
 
 
@@ -178,7 +180,8 @@ class WellnessHistoryEntry(BaseModel):
     user_id: str
 
 
-class Expense(BaseModel):
+class FlowUnit(BaseModel):
+    is_expense: bool
     category: str
     amount: float
     percentage: float
